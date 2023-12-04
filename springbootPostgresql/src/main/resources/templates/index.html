@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>API Data Bar Charts</title>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        th, td {
+            border: 1px solid #dddddd;
+            text-align: left;
+            padding: 8px;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        canvas {
+            max-width: 600px;
+            margin-top: 20px;
+        }
+    </style>
+    <!-- Include Chart.js library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Add this script for Thymeleaf expressions -->
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        var chartData = /*[[${chartData}]]*/ {};
+        var chartLabels = /*[[${chartLabels}]]*/ [];
+        var speakingTimeData = /*[[${speakingTimeData}]]*/ [];
+        var activeTimeData = /*[[${activeTimeData}]]*/ [];
+        /*]]>*/
+    </script>
+</head>
+<body>
+    <h2>API Data Bar Charts</h2>
+
+    <!-- Input fields for start and end times -->
+    <div>
+        <label for="startTime">Start Time:</label>
+        <input type="text" id="startTime" name="startTime" placeholder="Enter start time" />
+
+        <label for="endTime">End Time:</label>
+        <input type="text" id="endTime" name="endTime" placeholder="Enter end time" />
+
+        <button onclick="submitForm()">Submit</button>
+    </div>
+
+    <!-- Table displaying API data -->
+    <table>
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>User Name</th>
+                <th>Created At</th>
+                <th>Owner Name</th>
+                <th>User Entry</th>
+                <th>Room ID</th>
+                <th>User ID</th>
+                <th>Message Count</th>
+                <th>Reaction Count</th>
+                <th>Speaking Time (minutes)</th>
+                <th>Active Time (minutes)</th>
+                <!-- Add other table headers as needed -->
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Thymeleaf iteration to loop through the list of DUser objects -->
+            <tr th:each="user : ${duserList}">
+                <td th:if="${user != null}" th:text="${user.title}"></td>
+                <td th:if="${user != null}" th:text="${user.user_name}"></td>
+                <td th:if="${user != null}" th:text="${user.created_at}"></td>
+                <td th:if="${user != null}" th:text="${user.owner_name}"></td>
+                <td th:if="${user != null}" th:text="${user.user_entry}"></td>
+                <td th:if="${user != null}" th:text="${user.room_id}"></td>
+                <td th:if="${user != null}" th:text="${user.user_id}"></td>
+                <td th:if="${user != null}" th:text="${user.message_count}"></td>
+                <td th:if="${user != null}" th:text="${user.reaction_count}"></td>
+                <td th:if="${user != null}" th:text="${user.speaking_time_minutes}"></td>
+                <td th:if="${user != null}" th:text="${user.active_time_minutes}"></td>
+                <!-- Add other table data cells as needed -->
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- First Bar chart displaying the count of usernames for each title -->
+    <canvas id="myBarChart" width="1900" height="600"></canvas>
+
+    <!-- Second Bar chart displaying the sum of speaking time for each title -->
+    <canvas id="speakingTimeChart" width="1900" height="600"></canvas>
+
+    <!-- Third Bar chart displaying the sum of active time for each title -->
+    <canvas id="activeTimeChart" width="1900" height="600"></canvas>
+
+    <!-- Overlapping Bar chart displaying both speaking time and active time -->
+    <canvas id="combinedChart" width="1900" height="600"></canvas>
+
+    <script>
+        function submitForm() {
+            var startTimeInput = document.getElementById("startTime").value;
+            var endTimeInput = document.getElementById("endTime").value;
+
+            // Use AJAX or form submission to send the start and end times to the server
+            // Redirect or update the existing data based on the response
+            // ...
+
+            // For simplicity, you can also redirect to the URL with the specified start and end times
+            window.location.href = "/urlWithTimestamps?startTime=" + startTimeInput + "&endTime=" + endTimeInput;
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            var myBarChart = new Chart('myBarChart', {
+                type: 'bar',
+                data: {
+                    labels: chartLabels,
+                    datasets: [{
+                        label: 'Number of Users',
+                        data: chartData,
+                        backgroundColor: 'rgba(75, 192, 192, 0.7)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Titles'
+                            },
+                            ticks: {
+                                autoSkip: false,
+                                maxRotation: 45,
+                                minRotation: 45
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            stepSize: 1,
+                            title: {
+                                display: true,
+                                text: 'Count'
+                            }
+                        }
+                    }
+                }
+            });
+
+            var speakingTimeChart = new Chart('speakingTimeChart', {
+                type: 'bar',
+                data: {
+                    labels: chartLabels,
+                    datasets: [{
+                        label: 'Sum of Speaking Time (minutes)',
+                        data: speakingTimeData,
+                        backgroundColor: 'rgba(255, 99, 132, 0.7)',
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Titles'
+                            },
+                            ticks: {
+                                autoSkip: false,
+                                maxRotation: 45,
+                                minRotation: 45
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Sum of Speaking Time (minutes)'
+                            }
+                        }
+                    }
+                }
+            });
+
+            var activeTimeChart = new Chart('activeTimeChart', {
+                type: 'bar',
+                data: {
+                    labels: chartLabels,
+                    datasets: [{
+                        label: 'Sum of Active Time (minutes)',
+                        data: activeTimeData,
+                        backgroundColor: 'rgba(255, 206, 86, 0.7)',
+                        borderColor: 'rgba(255, 206, 86, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Titles'
+                            },
+                            ticks: {
+                                autoSkip: false,
+                                maxRotation: 45,
+                                minRotation: 45
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Sum of Active Time (minutes)'
+                            }
+                        }
+                    }
+                }
+            });
+
+            var combinedChart = new Chart('combinedChart', {
+                type: 'bar',
+                data: {
+                    labels: chartLabels,
+                    datasets: [
+                        {
+                            label: 'Sum of Speaking Time (minutes)',
+                            data: speakingTimeData,
+                            backgroundColor: 'rgba(255, 99, 132, 0.7)',
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Sum of Active Time (minutes)',
+                            data: activeTimeData,
+                            backgroundColor: 'rgba(255, 206, 86, 0.7)',
+                            borderColor: 'rgba(255, 206, 86, 1)',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Titles'
+                            },
+                            ticks: {
+                                autoSkip: false,
+                                maxRotation: 45,
+                                minRotation: 45
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Sum of Time (minutes)'
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
